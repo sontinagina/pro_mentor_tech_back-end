@@ -16,14 +16,37 @@ app.use(express1.json());
 mongoose.set("useFindAndModify", false);
 //schemas....
 const loginSchema = new mongoose.Schema({
+   ACCOUNTTYPE: String,
    USERNAME: String,
    EMAILID: String,
    USERPASSWORD: String,
 });
+
 const otpSchema = new mongoose.Schema({
    USEREMAIL: String,
    OTP: String,
    DATETIME: String,
+});
+const profileSchema = new mongoose.Schema({
+   Name: String,
+   Image: Buffer,
+   Gender: String,
+   Date: Date,
+   Email: String,
+   LinkedLink: String,
+   GitLink: String,
+   MobileNumber: Number,
+   Address: String,
+   City: String,
+   State: String,
+   Experience: Number,
+   JobType: String,
+   TextArea: String,
+});
+const stateCitySchema = new mongoose.Schema({
+   StateName: String,
+   StateCode: String,
+   CityName: Array,
 });
 const testSchema = new mongoose.Schema({
    email: String,
@@ -33,6 +56,8 @@ const testSchema = new mongoose.Schema({
 //models~~~!
 const loginModel = con.model("Login", loginSchema);
 const otpModel = con.model("otp", otpSchema);
+const profileModel = con.model("profile", profileSchema);
+const stateCityModel = con.model("stateCityData", stateCitySchema);
 const testModel = con.model("test", testSchema);
 
 app.use(
@@ -45,6 +70,8 @@ app.use(
    session({
       secret: session_secret,
       cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+      resave: true,
+      saveUninitialized: true,
    })
 );
 const AuthMiddleware = async (req, res, next) => {
@@ -61,33 +88,38 @@ app.get("/userinfo", AuthMiddleware, async (req, res) => {
    const user = await loginModel.findById(req.session.userId);
    res.send({ email: user.USEREMAIL });
 });
+
 app.post("/test", async (req, res) => {
-   const { otp, email } = req.body;
-   var currentTime = new Date();
-   let result = await testModel.findOneAndUpdate(
-      { email: email },
-      { otp: otp, date: currentTime }
-   );
-   if (result === null) {
-      const testData = {
-         email: email,
-         otp: otp,
-         date: currentTime,
-      };
-      const test = new testModel(testData);
-      result = await test.save();
-   }
+   let result = await loginModel.find();
+   console.log(result);
    res.send(result);
 });
+app.get("/getUsername", async (req, res) => {
+   const userId = req.session.userId;
+
+   console.log("user id : ", userId);
+   const existingUser = await loginModel.find(
+      { _id: userId },
+      { USERNAME: 1, EMAILID: 1, _id: 0 }
+   );
+   console.log("user email:::", existingUser);
+
+   if (isNullOrUndefined(existingUser)) {
+      res.status(401).send({ err: null });
+   } else {
+      res.send({ user: existingUser });
+   }
+});
 app.post("/signup", async (req, res) => {
-   const { username, email, password } = req.body;
-   console.log(username, email, password);
+   const { username, email, password, accounttype } = req.body;
+   console.log(username, email, password, accounttype);
    const exinstingUser = await loginModel.findOne({ EMAILID: email });
    console.log(exinstingUser, "this is existing user");
    if (isNullOrUndefined(exinstingUser)) {
       const encryptpassword = bcrypt.hashSync(password, SALT);
       console.log(encryptpassword);
       const userDetail = {
+         ACCOUNTTYPE: accounttype,
          USERNAME: username,
          EMAILID: email,
          USERPASSWORD: encryptpassword,
@@ -108,13 +140,17 @@ function isNullOrUndefined(val) {
 }
 
 app.post("/signin", async (req, res) => {
-   console.log("url hit");
+   // console.log("url hit");
    try {
-      const { email, password } = req.body;
-      const existingUser = await loginModel.findOne({ EMAILID: email });
+      const { email, password, accounttype } = req.body;
+      console.log(email, password, accounttype, "front end paramas");
+      const existingUser = await loginModel.findOne({
+         EMAILID: email,
+         ACCOUNTTYPE: accounttype,
+      });
       console.log(existingUser, "abc");
       if (isNullOrUndefined(existingUser)) {
-         res.status(401).send({ err: `Invalid usename/password` });
+         res.status(401).send({ err: `Invalid username/password` });
       } else {
          const hashedPwd = existingUser.USERPASSWORD;
          if (bcrypt.compareSync(password, hashedPwd)) {
@@ -156,7 +192,7 @@ function TimeDiff(startDate, endDate) {
    console.log(sec);
    return sec;
 }
-app.post("/forgotpass", AuthMiddleware, async (req, res) => {
+app.post("/forgotpass", async (req, res) => {
    const { type } = req.query;
    if (type === "email") {
       const { email } = req.body;
@@ -277,7 +313,62 @@ app.post("/forgotpass", AuthMiddleware, async (req, res) => {
       }
    }
 });
+app.post("/saveStateCity", (req, res) => {
+   const { data } = req.body;
+   console.log(data);
 
+   data.data.forEach(async (element) => {
+      console.log(element);
+      const stateCity = new stateCityModel(element);
+      await stateCity.save().catch((e) => {
+         res.status(400).send({ err: "failed :" + e });
+      });
+   });
+   // const stateCity = new stateCityModel(data);
+   // await stateCity.save(data).catch((e) => {
+   // res.status(400).send({ err: "failed :" + e });
+   // });
+
+   res.status(201).send({ msg: "success inserted" });
+});
+app.post("/user_profile", async (req, res) => {
+   const {
+      name,
+      img,
+      gender,
+      date,
+      email,
+      linkedin,
+      gitlink,
+      mobilenumber,
+      address,
+      cityName,
+      stateName,
+      experience,
+      jobtype,
+      textDetail,
+   } = req.body;
+});
+app.get("/getStates", async (req, res) => {
+   const states = await stateCityModel
+      .find({}, { StateName: 1, StateCode: 1, _id: 0 })
+      .catch((e) => {
+         res.status(400).send({ err: "failed :" + e });
+      });
+   console.log(states);
+   res.status(200).send({ states: states });
+});
+app.get("/getCities", async (req, res) => {
+   const { state } = req.query;
+   console.log(state);
+   const cities = await stateCityModel
+      .find({ StateName: state }, { CityName: 1, _id: 0 })
+      .catch((e) => {
+         res.status(400).send({ err: "failed :" + e });
+      });
+   console.log(cities);
+   res.status(200).send({ cities: cities });
+});
 app.listen(PORT, () => {
    console.log(`app is listening on port: ${PORT} ............`);
 });
