@@ -12,6 +12,7 @@ const SALT = 10;
 const DB_PORT = 27017;
 const DB_NAME = "ProMentorTechs";
 const con = connection1.getConnection({ port: DB_PORT, dbname: DB_NAME });
+console.log("con:: ", con);
 app.use(express1.json());
 mongoose.set("useFindAndModify", false);
 //schemas....
@@ -29,9 +30,9 @@ const otpSchema = new mongoose.Schema({
 });
 const profileSchema = new mongoose.Schema({
    Name: String,
-   Image: Buffer,
+   // Image: Buffer,
    Gender: String,
-   Date: Date,
+   dob: Date,
    Email: String,
    LinkedLink: String,
    GitLink: String,
@@ -42,6 +43,7 @@ const profileSchema = new mongoose.Schema({
    Experience: Number,
    JobType: String,
    TextArea: String,
+   CurrentDesignation: String,
 });
 const stateCitySchema = new mongoose.Schema({
    StateName: String,
@@ -196,7 +198,7 @@ app.post("/forgotpass", async (req, res) => {
    const { type } = req.query;
    if (type === "email") {
       const { email } = req.body;
-      // console.log("user: ", email);
+      console.log("user: ", email);
       const allData = await loginModel.find(
          { EMAILID: email },
          { USERNAME: 1, _id: 0 }
@@ -313,6 +315,7 @@ app.post("/forgotpass", async (req, res) => {
       }
    }
 });
+//used for storing state and city (admin use only)
 app.post("/saveStateCity", (req, res) => {
    const { data } = req.body;
    console.log(data);
@@ -324,19 +327,22 @@ app.post("/saveStateCity", (req, res) => {
          res.status(400).send({ err: "failed :" + e });
       });
    });
-   // const stateCity = new stateCityModel(data);
-   // await stateCity.save(data).catch((e) => {
-   // res.status(400).send({ err: "failed :" + e });
-   // });
-
    res.status(201).send({ msg: "success inserted" });
 });
-app.post("/user_profile", async (req, res) => {
+app.get("/getProfileDetails", async (req, res) => {
+   const userId = req.session.userId;
+   const existingProfile = await profileModel.findOne(
+      { _id: userId },
+      { _id: 0, __v: 0 }
+   );
+   res.send({ getProfileInfo: existingProfile });
+});
+app.post("/saveProfile", async (req, res) => {
    const {
       name,
-      img,
+      // img,
       gender,
-      date,
+      dob,
       email,
       linkedin,
       gitlink,
@@ -347,7 +353,58 @@ app.post("/user_profile", async (req, res) => {
       experience,
       jobtype,
       textDetail,
+      currentDesignation,
    } = req.body;
+   const userId = req.session.userId;
+   const userDetail = {
+      _id: userId,
+      Name: name,
+      // Image: img,
+      Gender: gender,
+      DOB: dob,
+      Email: email,
+      LinkedLink: linkedin,
+      GitLink: gitlink,
+      MobileNumber: mobilenumber,
+      Address: address,
+      City: cityName,
+      State: stateName,
+      Experience: experience,
+      JobType: jobtype,
+      TextArea: textDetail,
+      CurrentDesignation: currentDesignation,
+   };
+   let error = "";
+   if (isNullOrUndefined(name)) {
+      error += "Name is mandatory, ";
+   }
+   if (isNullOrUndefined(dob)) {
+      error += "DOB is mandatory, ";
+   }
+   if (isNullOrUndefined(email)) {
+      error += "Email is mandatory, ";
+   }
+   if (isNullOrUndefined(gender)) {
+      error += "Gender is mandatory, ";
+   }
+   if (isNullOrUndefined(currentDesignation)) {
+      error += "CurrentDesignation is mandatory, ";
+   }
+   if (error.length > 0) {
+      error = error.substring(0, error.length - 2);
+      res.status(400).send({ err: error });
+   }
+   const user = new profileModel(userDetail);
+   await user.save().catch(async (e) => {
+      console.log("error 1 ::", e);
+      await profileModel
+         .findOneAndUpdate({ _id: userId }, userDetail)
+         .catch((e) => {
+            console.log("error 2:: ", e);
+            res.status(400).send({ err: "failed :" + e });
+         });
+   });
+   res.status(201).send({ msg: "success" });
 });
 app.get("/getStates", async (req, res) => {
    const states = await stateCityModel
