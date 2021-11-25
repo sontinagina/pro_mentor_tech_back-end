@@ -71,7 +71,7 @@ const testModel = con.model("test", testSchema);
 app.use(
    cors({
       credentials: true,
-      origin: "https://pro-mentor-techs.herokuapp.com/",
+      origin: "https://pro-mentor-techs.herokuapp.com",
    })
 );
 app.use(
