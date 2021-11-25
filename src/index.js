@@ -91,7 +91,7 @@ const AuthMiddleware = async (req, res, next) => {
       next();
    }
 };
-app.get("/userinfo", AuthMiddleware, async (req, res) => {
+app.get("/userinfo", async (req, res) => {
    const user = await loginModel.findById(req.session.userId);
    res.send({ email: user.USEREMAIL });
 });
