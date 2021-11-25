@@ -68,7 +68,12 @@ const testModel = con.model("test", testSchema);
 //       origin: "*",
 //    })
 // );
-app.use(cors());
+app.use(
+   cors({
+      credentials: true,
+      origin: "https://pro-mentor-techs.herokuapp.com/",
+   })
+);
 app.use(
    session({
       secret: session_secret,
