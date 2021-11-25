@@ -12,26 +12,6 @@ const SALT = 10;
 const DB_PORT = 27017;
 const DB_NAME = "ProMentorTechs";
 const con = connection1.getConnection({ port: DB_PORT, dbname: DB_NAME });
-// const con = connection1.getConnection({});
-// {
-   /**creating connection */
-// }
-// const DB =
-//    "mongodb+srv://sontinagina:<sontinagina>@cluster0.jdszp.mongodb.net/PRO-MENTOR-TECHS?retryWrites=true&w=majority";
-// mongoose
-//    .connect(DB, {
-//       useNewUrlParser: true,
-//       useCreateIndex: true,
-//       useUnifiedTopology: true,
-//    })
-//    .then(() => {
-//       console.log("connection successfully");
-//    })
-//    .catch((err) => console.log(`no connection`));
-// console.log("con:: ", con);
-// {
-   /**end of my code */
-// }
 
 app.use(express1.json());
 mongoose.set("useFindAndModify", false);
@@ -82,12 +62,13 @@ const profileModel = con.model("profile", profileSchema);
 const stateCityModel = con.model("stateCityData", stateCitySchema);
 const testModel = con.model("test", testSchema);
 
-app.use(
-   cors({
-      credentials: true,
-      origin: "*",
-   })
-);
+// app.use(
+//    cors({
+//       credentials: true,
+//       origin: "*",
+//    })
+// );
+app.use(cors());
 app.use(
    session({
       secret: session_secret,
@@ -447,6 +428,7 @@ app.get("/getCities", async (req, res) => {
    res.status(200).send({ cities: cities });
 });
 app.get("/", (req, res) => {
+   console.log("server working here------>");
    res.send("server works------->");
 });
 app.listen(process.env.PORT);
