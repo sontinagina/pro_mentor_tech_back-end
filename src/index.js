@@ -68,11 +68,7 @@ const testModel = con.model("test", testSchema);
 //       origin: "*",
 //    })
 // );
-app.use(
-   cors({
-      origin: "*",
-   })
-);
+app.use(cors());
 app.use(
    session({
       secret: session_secret,
@@ -435,4 +431,4 @@ app.get("/", (req, res) => {
    console.log("server working here------>");
    res.send("server works------->");
 });
-app.listen(process.env.PORT);
+app.listen(process.env.PORT || 3001);
