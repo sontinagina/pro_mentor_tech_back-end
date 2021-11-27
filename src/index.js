@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 const cors = require("cors");
 const session = require("express-session");
+const cookieParser = require("cookie-parser");
+
 const session_secret = "ProMentorTechs";
 const app = express1();
 const SALT = 10;
@@ -19,6 +21,7 @@ const con = mongoose.createConnection(
    }
 );
 app.use(express1.json());
+app.use(cookieParser());
 mongoose.set("useFindAndModify", false);
 const loginSchema = new mongoose.Schema({
    ACCOUNTTYPE: String,
