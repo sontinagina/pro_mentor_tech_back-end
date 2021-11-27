@@ -76,11 +76,19 @@ app.use(
 // app.use(cors());
 app.use(
    session({
-      secret: session_secret,
-      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
-      secure: true,
-      resave: true,
-      saveUninitialized: true,
+      // secret: session_secret,
+      // cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+      // resave: true,
+      // saveUninitialized: true,
+      secret: 'whatever',
+      saveUninitialized: false,
+      resave: false,
+      unset: 'destroy',
+      cookie: {
+          sameSite: 'Lax',
+          maxAge: 600000,
+         //  secure: true
+      },
    })
 );
 const AuthMiddleware = async (req, res, next) => {
@@ -101,7 +109,7 @@ app.get("/userinfo", AuthMiddleware, async (req, res) => {
    res.send({ email: user.USEREMAIL });
 });
 
-app.post("/test",AuthMiddleware, async (req, res) => {
+app.post("/test", async (req, res) => {
    console.log("test api heated.....");
    res.send("success");
 });
@@ -211,7 +219,7 @@ function TimeDiff(startDate, endDate) {
    console.log(sec);
    return sec;
 }
-app.post("/forgotpass", AuthMiddleware, async (req, res) => {
+app.post("/forgotpass", async (req, res) => {
    const { type } = req.query;
    if (type === "email") {
       const { email } = req.body;
