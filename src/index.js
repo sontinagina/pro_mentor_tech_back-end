@@ -165,7 +165,8 @@ function isNullOrUndefined(val) {
 }
 app.get("/getSession",async (req,res)=>{
 // const {name}=req.body;
-res.send({"session":req.session.userId});
+console.log("sesssion api heated.....")
+res.send({"sessionId":req.session.userId,"session":req.session});
 
 })
 app.post("/signin", async (req, res) => {
