@@ -7,7 +7,6 @@ const cors = require("cors");
 const session = require("express-session");
 const session_secret = "ProMentorTechs";
 const app = express1();
-// const PORT = 8081;
 const SALT = 10;
 // const DB_PORT = 27017;
 const DB_NAME = "ProMentorTechs";
