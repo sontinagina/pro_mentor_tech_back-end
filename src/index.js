@@ -80,8 +80,8 @@ app.use(
 );
 // app.use(cors());
 const oneDay = 1000 * 60 * 60 * 24;
-app.use(Express.json({ limit: "40mb", extended: true }));
-app.use(Express.urlencoded({ limit: "40mb", extended: true }));
+app.use(express1.json({ limit: "40mb", extended: true }));
+app.use(express1.urlencoded({ limit: "40mb", extended: true }));
 app.set("trust proxy", 1);
 
 app.use(
@@ -101,16 +101,17 @@ app.use(
       // secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
    //  saveUninitialized:true,
    //  cookie: { maxAge: oneDay },
+   saveUninitialized: true,
     resave: false,
     name: "LHsession",
     secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
     resave: true,
-    store: new MongoStore({ mongooseConnection: mongoose.connection }),
     cookie: {
       sameSite: false,
       maxAge: 8.64e7,
       secure: false,
       httpOnly: false,
+     
    }
 })
 );
