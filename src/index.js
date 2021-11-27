@@ -163,7 +163,11 @@ app.post("/signup", async (req, res) => {
 function isNullOrUndefined(val) {
    return val === undefined || val === null;
 }
+app.get("/getSession",async (req,res)=>{
+// const {name}=req.body;
+res.send({"session":req.session.userId});
 
+})
 app.post("/signin", async (req, res) => {
    console.log("url hit");
    try {
