@@ -91,7 +91,7 @@ const AuthMiddleware = async (req, res, next) => {
       console.log("middleware error",req.session)
       res.status(401).send({ err: "not logged in" });
    } else {
-      console.log("middleware success")
+      console.log("middleware success",req.session)
       next();
    }
 };
@@ -105,7 +105,7 @@ app.post("/test", async (req, res) => {
    console.log(result);
    res.send(result);
 });
-app.get("/getUsername", AuthMiddleware, async (req, res) => {
+app.get("/getUsername", async (req, res) => {
    const userId = req.session.userId;
 
    console.log("user id : ", userId);
