@@ -20,7 +20,6 @@ const con = mongoose.createConnection(
 );
 app.use(express1.json());
 mongoose.set("useFindAndModify", false);
-//schemas....
 const loginSchema = new mongoose.Schema({
    ACCOUNTTYPE: String,
    USERNAME: String,
