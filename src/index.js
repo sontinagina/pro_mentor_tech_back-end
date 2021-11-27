@@ -78,6 +78,7 @@ app.use(
    session({
       secret: session_secret,
       cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+      secure: true,
       resave: true,
       saveUninitialized: true,
    })
@@ -91,7 +92,7 @@ const AuthMiddleware = async (req, res, next) => {
       console.log("middleware error",req.session)
       res.status(401).send({ err: "not logged in" });
    } else {
-      console.log("middleware success",req.session)
+      console.log("middleware success",req.session,req.session.userId)
       next();
    }
 };
@@ -100,12 +101,11 @@ app.get("/userinfo", AuthMiddleware, async (req, res) => {
    res.send({ email: user.USEREMAIL });
 });
 
-app.post("/test", async (req, res) => {
-   let result = await loginModel.find();
-   console.log(result);
-   res.send(result);
+app.post("/test",AuthMiddleware, async (req, res) => {
+   console.log("test api heated.....");
+   res.send("success");
 });
-app.get("/getUsername", async (req, res) => {
+app.get("/getUsername",AuthMiddleware, async (req, res) => {
    const userId = req.session.userId;
 
    console.log("user id : ", userId);
