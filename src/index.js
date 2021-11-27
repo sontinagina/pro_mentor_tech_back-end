@@ -76,13 +76,13 @@ app.use(
 // app.use(cors());
 app.use(
    session({
-      // secret: session_secret,
+      secret: session_secret,
       // cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
       // resave: true,
       // saveUninitialized: true,
-      secret: 'whatever',
-      saveUninitialized: false,
-      resave: false,
+      // secret: 'whatever',
+      saveUninitialized: true,
+      resave: true,
       unset: 'destroy',
       cookie: {
           sameSite: 'Lax',
