@@ -66,10 +66,11 @@ const profileModel = con.model("profile", profileSchema);
 const stateCityModel = con.model("stateCityData", stateCitySchema);
 const testModel = con.model("test", testSchema);
 
+
 app.use(
    cors({
       credentials: true,
-      origin: "*"   
+      origin: 'http://localhost:3000'   
    })
 );
 // app.use(cors());
