@@ -77,21 +77,26 @@ app.use(
    })
 );
 // app.use(cors());
+const oneDay = 1000 * 60 * 60 * 24;
+
 app.use(
    session({
-      secret: session_secret,
+      // secret: session_secret,
       // cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
       // resave: true,
       // saveUninitialized: true,
       // secret: 'whatever',
-      saveUninitialized: true,
-      resave: true,
-      unset: 'destroy',
-      cookie: {
-          sameSite: 'Lax',
-          maxAge: 600000,
+      // saveUninitialized: true,
+      // resave: true,
+      // unset: 'destroy',
+      // cookie: {
+      //     sameSite: 'Lax',
+      //     maxAge: 600000,
          //  secure: true
-      },
+         secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+    saveUninitialized:true,
+    cookie: { maxAge: oneDay },
+    resave: false
    })
 );
 const AuthMiddleware = async (req, res, next) => {
@@ -168,7 +173,7 @@ function isNullOrUndefined(val) {
 }
 app.get("/getSession",async (req,res)=>{
 // const {name}=req.body;
-console.log("sesssion api heated.....")
+console.log("sesssion api heated.....","sessionId",req.session.userId,"session",req.session)
 res.send({"sessionId":req.session.userId,"session":req.session});
 
 })
