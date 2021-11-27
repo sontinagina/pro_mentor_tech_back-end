@@ -7,12 +7,18 @@ const cors = require("cors");
 const session = require("express-session");
 const session_secret = "ProMentorTechs";
 const app = express1();
-const PORT = 8081;
+// const PORT = 8081;
 const SALT = 10;
-const DB_PORT = 27017;
+// const DB_PORT = 27017;
 const DB_NAME = "ProMentorTechs";
-const con = connection1.getConnection({ port: DB_PORT, dbname: DB_NAME });
-
+// const con = connection1.getConnection({ port: DB_PORT, dbname: DB_NAME });
+const con = mongoose.createConnection(
+   "mongodb+srv://sontinagina:sontinagina@cluster0.jdszp.mongodb.net/Pro-mentor-techs?retryWrites=true&w=majority",
+   {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+   }
+);
 app.use(express1.json());
 mongoose.set("useFindAndModify", false);
 //schemas....
@@ -62,13 +68,13 @@ const profileModel = con.model("profile", profileSchema);
 const stateCityModel = con.model("stateCityData", stateCitySchema);
 const testModel = con.model("test", testSchema);
 
-// app.use(
-//    cors({
-//       credentials: true,
-//       origin: "*",
-//    })
-// );
-app.use(cors());
+app.use(
+   cors({
+      credentials: true,
+      origin: "*"   
+   })
+);
+// app.use(cors());
 app.use(
    session({
       secret: session_secret,
@@ -78,16 +84,19 @@ app.use(
    })
 );
 const AuthMiddleware = async (req, res, next) => {
+   console.log("middle ware hit")
    if (
       isNullOrUndefined(req.session) ||
       isNullOrUndefined(req.session.userId)
    ) {
+      console.log("middleware error",req.session)
       res.status(401).send({ err: "not logged in" });
    } else {
+      console.log("middleware success")
       next();
    }
 };
-app.get("/userinfo", async (req, res) => {
+app.get("/userinfo", AuthMiddleware, async (req, res) => {
    const user = await loginModel.findById(req.session.userId);
    res.send({ email: user.USEREMAIL });
 });
@@ -97,7 +106,7 @@ app.post("/test", async (req, res) => {
    console.log(result);
    res.send(result);
 });
-app.get("/getUsername", async (req, res) => {
+app.get("/getUsername", AuthMiddleware, async (req, res) => {
    const userId = req.session.userId;
 
    console.log("user id : ", userId);
@@ -128,12 +137,18 @@ app.post("/signup", async (req, res) => {
          USERPASSWORD: encryptpassword,
       };
       const user = new loginModel(userDetail);
+      let errorExist=false;
       await user.save(userDetail).catch((e) => {
+         console.log("error::: ",e);
          res.status(400).send({ err: "failed :" + e });
+         errorExist=true;
       });
+      if(!errorExist){
+      console.log("user::",user);
       req.session.userId = user._id;
-
+      console.log("success:::",req.session.userId);
       res.status(201).send({ msg: "success" });
+      }
    } else {
       res.status(400).send({ err: `email already exist` });
    }
@@ -143,7 +158,7 @@ function isNullOrUndefined(val) {
 }
 
 app.post("/signin", async (req, res) => {
-   // console.log("url hit");
+   console.log("url hit");
    try {
       const { email, password, accounttype } = req.body;
       console.log(email, password, accounttype, "front end paramas");
@@ -158,7 +173,9 @@ app.post("/signin", async (req, res) => {
          const hashedPwd = existingUser.USERPASSWORD;
          if (bcrypt.compareSync(password, hashedPwd)) {
             req.session.userId = existingUser._id;
-
+            console.log("user::",existingUser);
+            console.log("sesssion::",req.session.userId);
+            
             res.status(200).send({
                msg: `log in successfully`,
             });
@@ -195,7 +212,7 @@ function TimeDiff(startDate, endDate) {
    console.log(sec);
    return sec;
 }
-app.post("/forgotpass", async (req, res) => {
+app.post("/forgotpass", AuthMiddleware, async (req, res) => {
    const { type } = req.query;
    if (type === "email") {
       const { email } = req.body;
@@ -330,7 +347,7 @@ app.post("/saveStateCity", (req, res) => {
    });
    res.status(201).send({ msg: "success inserted" });
 });
-app.get("/getProfileDetails", async (req, res) => {
+app.get("/getProfileDetails", AuthMiddleware, async (req, res) => {
    const userId = req.session.userId;
    const existingProfile = await profileModel.findOne(
       { _id: userId },
@@ -338,7 +355,7 @@ app.get("/getProfileDetails", async (req, res) => {
    );
    res.send({ getProfileInfo: existingProfile });
 });
-app.post("/saveProfile", async (req, res) => {
+app.post("/saveProfile", AuthMiddleware, async (req, res) => {
    const {
       name,
       // img,
@@ -396,16 +413,21 @@ app.post("/saveProfile", async (req, res) => {
       res.status(400).send({ err: error });
    }
    const user = new profileModel(userDetail);
+   let error1=false;
    await user.save().catch(async (e) => {
       console.log("error 1 ::", e);
+      
       await profileModel
          .findOneAndUpdate({ _id: userId }, userDetail)
          .catch((e) => {
+            error1=true;
             console.log("error 2:: ", e);
             res.status(400).send({ err: "failed :" + e });
          });
    });
+   if(!error1){
    res.status(201).send({ msg: "success" });
+   }
 });
 app.get("/getStates", async (req, res) => {
    const states = await stateCityModel
