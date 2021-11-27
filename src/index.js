@@ -22,7 +22,7 @@ const con = mongoose.createConnection(
 );
 app.use(express1.json());
 app.use(cookieParser());
-app.set('trust proxy', 1);
+// app.set('trust proxy', 1);
 mongoose.set("useFindAndModify", false);
 const loginSchema = new mongoose.Schema({
    ACCOUNTTYPE: String,
@@ -73,12 +73,16 @@ const testModel = con.model("test", testSchema);
 
 app.use(
    cors({
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
       credentials: true,
-      origin: 'http://localhost:3000'   
+      origin: ['https://pro-mentor-techs.herokuapp.com','http://localhost:3000']   
    })
 );
 // app.use(cors());
 const oneDay = 1000 * 60 * 60 * 24;
+app.use(Express.json({ limit: "40mb", extended: true }));
+app.use(Express.urlencoded({ limit: "40mb", extended: true }));
+app.set("trust proxy", 1);
 
 app.use(
    session({
@@ -94,11 +98,21 @@ app.use(
       //     sameSite: 'Lax',
       //     maxAge: 600000,
          //  secure: true
-         secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-    saveUninitialized:true,
-    cookie: { maxAge: oneDay },
-    resave: false
-   })
+      // secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+   //  saveUninitialized:true,
+   //  cookie: { maxAge: oneDay },
+    resave: false,
+    name: "LHsession",
+    secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+    resave: true,
+    store: new MongoStore({ mongooseConnection: mongoose.connection }),
+    cookie: {
+      sameSite: false,
+      maxAge: 8.64e7,
+      secure: false,
+      httpOnly: false,
+   }
+})
 );
 const AuthMiddleware = async (req, res, next) => {
    console.log("middle ware hit")
