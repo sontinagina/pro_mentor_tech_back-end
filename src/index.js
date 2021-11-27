@@ -22,6 +22,7 @@ const con = mongoose.createConnection(
 );
 app.use(express1.json());
 app.use(cookieParser());
+app.set('trust proxy', 1);
 mongoose.set("useFindAndModify", false);
 const loginSchema = new mongoose.Schema({
    ACCOUNTTYPE: String,
