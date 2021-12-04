@@ -18,6 +18,8 @@ const con = mongoose.createConnection(
    {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
    }
 );
 app.use(express1.json());
@@ -70,12 +72,14 @@ const profileModel = con.model("profile", profileSchema);
 const stateCityModel = con.model("stateCityData", stateCitySchema);
 const testModel = con.model("test", testSchema);
 
-
 app.use(
    cors({
       methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-      credentials: true,
-      origin: ['https://pro-mentor-techs.herokuapp.com','http://localhost:3000']   
+      credentials: false,
+      origin: [
+         "https://pro-mentor-techs.herokuapp.com/",
+         "http://localhost:3000",
+      ],
    })
 );
 // app.use(cors());
@@ -97,34 +101,33 @@ app.use(
       // cookie: {
       //     sameSite: 'Lax',
       //     maxAge: 600000,
-         //  secure: true
+      //  secure: true
       // secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-   //  saveUninitialized:true,
-   //  cookie: { maxAge: oneDay },
-   saveUninitialized: true,
-    resave: false,
-    name: "LHsession",
-    secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
-    resave: true,
-    cookie: {
-      sameSite: false,
-      maxAge: 8.64e7,
-      secure: false,
-      httpOnly: false,
-     
-   }
-})
+      //  saveUninitialized:true,
+      //  cookie: { maxAge: oneDay },
+      saveUninitialized: true,
+      resave: false,
+      name: "LHsession",
+      secret: "thisismysecrctekeyfhrgfgrfrty84fwir767",
+      resave: true,
+      cookie: {
+         sameSite: false,
+         maxAge: 8.64e7,
+         secure: false,
+         httpOnly: false,
+      },
+   })
 );
 const AuthMiddleware = async (req, res, next) => {
-   console.log("middle ware hit")
+   console.log("middle ware hit");
    if (
       isNullOrUndefined(req.session) ||
       isNullOrUndefined(req.session.userId)
    ) {
-      console.log("middleware error",req.session)
+      console.log("middleware error", req.session);
       res.status(401).send({ err: "not logged in" });
    } else {
-      console.log("middleware success",req.session,req.session.userId)
+      console.log("middleware success", req.session, req.session.userId);
       next();
    }
 };
@@ -137,7 +140,7 @@ app.post("/test", async (req, res) => {
    console.log("test api heated.....");
    res.send("success");
 });
-app.get("/getUsername",AuthMiddleware, async (req, res) => {
+app.get("/getUsername", AuthMiddleware, async (req, res) => {
    const userId = req.session.userId;
 
    console.log("user id : ", userId);
@@ -168,17 +171,17 @@ app.post("/signup", async (req, res) => {
          USERPASSWORD: encryptpassword,
       };
       const user = new loginModel(userDetail);
-      let errorExist=false;
+      let errorExist = false;
       await user.save(userDetail).catch((e) => {
-         console.log("error::: ",e);
+         console.log("error::: ", e);
          res.status(400).send({ err: "failed :" + e });
-         errorExist=true;
+         errorExist = true;
       });
-      if(!errorExist){
-      console.log("user::",user);
-      req.session.userId = user._id;
-      console.log("success:::",req.session.userId);
-      res.status(201).send({ msg: "success" });
+      if (!errorExist) {
+         console.log("user::", user);
+         req.session.userId = user._id;
+         console.log("success:::", req.session.userId);
+         res.status(201).send({ msg: "success" });
       }
    } else {
       res.status(400).send({ err: `email already exist` });
@@ -187,12 +190,17 @@ app.post("/signup", async (req, res) => {
 function isNullOrUndefined(val) {
    return val === undefined || val === null;
 }
-app.get("/getSession",async (req,res)=>{
-// const {name}=req.body;
-console.log("sesssion api heated.....","sessionId",req.session.userId,"session",req.session)
-res.send({"sessionId":req.session.userId,"session":req.session});
-
-})
+app.get("/getSession", async (req, res) => {
+   // const {name}=req.body;
+   console.log(
+      "sesssion api heated.....",
+      "sessionId",
+      req.session.userId,
+      "session",
+      req.session
+   );
+   res.send({ sessionId: req.session.userId, session: req.session });
+});
 app.post("/signin", async (req, res) => {
    console.log("url hit");
    try {
@@ -209,9 +217,9 @@ app.post("/signin", async (req, res) => {
          const hashedPwd = existingUser.USERPASSWORD;
          if (bcrypt.compareSync(password, hashedPwd)) {
             req.session.userId = existingUser._id;
-            console.log("user::",existingUser);
-            console.log("sesssion::",req.session.userId);
-            
+            console.log("user::", existingUser);
+            console.log("sesssion::", req.session.userId);
+
             res.status(200).send({
                msg: `log in successfully`,
             });
@@ -286,7 +294,7 @@ app.post("/forgotpass", async (req, res) => {
             secure: false,
             auth: {
                user: "beingidentified2022@gmail.com",
-               pass: "setjx9999",
+               pass: "*********",
             },
          });
          const mailOptions = {
